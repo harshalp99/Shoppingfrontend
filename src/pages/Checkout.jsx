@@ -1,55 +1,74 @@
 import React, { useState } from "react";
-import api from "../api/axiosInstance";
-import { useCart } from "../context/CartProvider";
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Checkout = () => {
-  const { cart, clearCart } = useCart();
-  const navigate = useNavigate();
-  const [customer, setCustomer] = useState({ name: "", email: "", address: "" });
+  const [customer, setCustomer] = useState({
+    customerName: "",
+    customerEmail: "",
+    customerBillingAddress: {
+      doorNo: "",
+      streetName: "",
+      layout: "",
+      city: "",
+      pincode: "",
+    },
+    customerShippingAddress: {
+      doorNo: "",
+      streetName: "",
+      layout: "",
+      city: "",
+      pincode: "",
+    },
+  });
 
   const handleChange = (e) => {
-    setCustomer({ ...customer, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setCustomer({ ...customer, [name]: value });
+  };
+
+  const handleAddressChange = (e, addressType) => {
+    const { name, value } = e.target;
+    setCustomer({
+      ...customer,
+      [addressType]: { ...customer[addressType], [name]: value },
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!customer.name || !customer.email || !customer.address) {
-      alert("Please fill all fields.");
-      return;
-    }
-
-    const orderData = { customer, items: cart };
-
     try {
-      await api.post("/orders", orderData);
-      alert("Order placed successfully!");
-      clearCart(); // Empty the cart after successful order
-      navigate("/orders");
+      const response = await axios.post("http://localhost:8082/api/addCustomer", customer);
+      alert("Customer added successfully: " + JSON.stringify(response.data));
     } catch (error) {
-      console.error("Order submission failed:", error);
-      alert("Failed to place order.");
+      alert("Error adding customer: " + error.message);
     }
   };
 
   return (
-    <div className="container mt-4">
+    <div>
       <h2>Checkout</h2>
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label>Name</label>
-          <input type="text" name="name" className="form-control" onChange={handleChange} required />
-        </div>
-        <div className="mb-3">
-          <label>Email</label>
-          <input type="email" name="email" className="form-control" onChange={handleChange} required />
-        </div>
-        <div className="mb-3">
-          <label>Address</label>
-          <textarea name="address" className="form-control" onChange={handleChange} required></textarea>
-        </div>
-        <button type="submit" className="btn btn-success">Place Order</button>
+        <label>Name:</label>
+        <input type="text" name="customerName" value={customer.customerName} onChange={handleChange} required />
+        
+        <label>Email:</label>
+        <input type="email" name="customerEmail" value={customer.customerEmail} onChange={handleChange} required />
+        
+        <h3>Billing Address</h3>
+        <input type="text" name="doorNo" placeholder="Door No" value={customer.customerBillingAddress.doorNo} onChange={(e) => handleAddressChange(e, "customerBillingAddress")} required />
+        <input type="text" name="streetName" placeholder="Street Name" value={customer.customerBillingAddress.streetName} onChange={(e) => handleAddressChange(e, "customerBillingAddress")} required />
+        <input type="text" name="layout" placeholder="Layout" value={customer.customerBillingAddress.layout} onChange={(e) => handleAddressChange(e, "customerBillingAddress")} required />
+        <input type="text" name="city" placeholder="City" value={customer.customerBillingAddress.city} onChange={(e) => handleAddressChange(e, "customerBillingAddress")} required />
+        <input type="text" name="pincode" placeholder="Pincode" value={customer.customerBillingAddress.pincode} onChange={(e) => handleAddressChange(e, "customerBillingAddress")} required />
+
+        <h3>Shipping Address</h3>
+        <input type="text" name="doorNo" placeholder="Door No" value={customer.customerShippingAddress.doorNo} onChange={(e) => handleAddressChange(e, "customerShippingAddress")} required />
+        <input type="text" name="streetName" placeholder="Street Name" value={customer.customerShippingAddress.streetName} onChange={(e) => handleAddressChange(e, "customerShippingAddress")} required />
+        <input type="text" name="layout" placeholder="Layout" value={customer.customerShippingAddress.layout} onChange={(e) => handleAddressChange(e, "customerShippingAddress")} required />
+        <input type="text" name="city" placeholder="City" value={customer.customerShippingAddress.city} onChange={(e) => handleAddressChange(e, "customerShippingAddress")} required />
+        <input type="text" name="pincode" placeholder="Pincode" value={customer.customerShippingAddress.pincode} onChange={(e) => handleAddressChange(e, "customerShippingAddress")} required />
+
+        <button type="submit">Submit</button>
       </form>
     </div>
   );

@@ -18,6 +18,9 @@ const Navbar = () => {
         <li>
           <Link to="/orders" style={styles.link}>Orders</Link>
         </li>
+        <li>
+          <Link to="/checkout" style={styles.link}>Place Order</Link>
+        </li>
       </ul>
     </nav>
   );

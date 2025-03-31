@@ -1,37 +1,59 @@
-import React, { useEffect, useState } from "react";
-import api from "../api/axiosInstance";
-import { useCart } from "../context/CartProvider";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
-  const { addToCart } = useCart();
+    const [products, setProducts] = useState([]);
+    const [newProduct, setNewProduct] = useState({ productName: '', productDescription: '', productPrice: '' });
 
-  useEffect(() => {
-    api.get("/products") // Calls backend API
-      .then((response) => setProducts(response.data))
-      .catch((error) => console.error("Error fetching products:", error));
-  }, []);
+    useEffect(() => {
+        fetchProducts();
+    }, []);
 
-  return (
-    <div className="container mt-4">
-      <h2>Products</h2>
-      <div className="row">
-        {products.map((product) => (
-          <div key={product.id} className="col-md-4 mb-3">
-            <div className="card">
-              <div className="card-body">
-                <h5 className="card-title">{product.name}</h5>
-                <p className="card-text">${product.price}</p>
-                <button className="btn btn-primary" onClick={() => addToCart(product)}>
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    const fetchProducts = async () => {
+        try {
+            const { data } = await axios.get('http://localhost:9092/api/products');
+            setProducts(data);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+        }
+    };
+
+    const addProduct = async () => {
+        try {
+            await axios.post('http://localhost:9092/api/products', newProduct);
+            fetchProducts();
+        } catch (error) {
+            console.error('Error adding product:', error);
+        }
+    };
+
+    const deleteProduct = async (id) => {
+        try {
+            await axios.delete(`http://localhost:9092/api/products/${id}`);
+            fetchProducts();
+        } catch (error) {
+            console.error('Error deleting product:', error);
+        }
+    };
+
+    return (
+        <div>
+            <h2>Products</h2>
+            <ul>
+                {products.map((product) => (
+                    <li key={product.productId}>
+                        {product.productName} - ${product.productPrice}
+                        <button onClick={() => deleteProduct(product.productId)}>Delete</button>
+                    </li>
+                ))}
+            </ul>
+            <h3>Add Product</h3>
+            <input type="text" placeholder="Name" value={newProduct.productName} onChange={(e) => setNewProduct({ ...newProduct, productName: e.target.value })} />
+            <input type="text" placeholder="Description" value={newProduct.productDescription} onChange={(e) => setNewProduct({ ...newProduct, productDescription: e.target.value })} />
+            <input type="number" placeholder="Price" value={newProduct.productPrice} onChange={(e) => setNewProduct({ ...newProduct, productPrice: e.target.value })} />
+            <button onClick={addProduct}>Add</button>
+        </div>
+    );
 };
 
 export default Products;
